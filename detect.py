@@ -155,10 +155,17 @@ def run(
                 det[:, :4] = scale_boxes(im.shape[2:], det[:, :4], im0.shape).round()
 
                 # Print results
+                total = 0
                 for c in det[:, 5].unique():
                     n = (det[:, 5] == c).sum()  # detections per class
                     s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
+                    total += n
 
+                aligns = im0.shape
+                align_bottom = aligns[0] - 35
+                align_right = (aligns[1]/1.7)
+                cv2.putText(im0, f"counter: {total}", (int(align_right), align_bottom), 
+                            cv2.FONT_HERSHEY_SIMPLEX, 1, (45, 255, 255), 1, cv2.LINE_AA)
                 # Write results
                 for *xyxy, conf, cls in reversed(det):
                     if save_txt:  # Write to file
@@ -212,6 +219,7 @@ def run(
     if save_txt or save_img:
         s = f"\n{len(list(save_dir.glob('labels/*.txt')))} labels saved to {save_dir / 'labels'}" if save_txt else ''
         LOGGER.info(f"Results saved to {colorstr('bold', save_dir)}{s}")
+        LOGGER.info(f"total {total}")
     if update:
         strip_optimizer(weights[0])  # update model (to fix SourceChangeWarning)
 
